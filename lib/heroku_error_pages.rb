@@ -1,20 +1,28 @@
 require "fog"
 
 module Heroku::Command
-  class ErrorPages < BaseWithApp
+  class ErrorPages < Base
 
     def upload
-      display "Start upload public/*.html"
-
-      s3_files = public_html_list do |file_name, file|
-        display "Upload #{file_name} to #{store_url(file_name)}"
-        directory.files.create(key: store_url(file_name), body: file, public: true)
+      action "Start upload public/*.html" do
+        s3_files = public_html_list do |file_name, file|
+          display "Upload #{file_name} to #{store_url(file_name)}"
+          directory.files.create(key: store_url(file_name), body: file, public: true)
+        end
       end
-
-      display "Finish to upload"
     end
 
-    def config
+    def config(error_page_key = "500.html", maintenance_page_key = "503.html")
+      action "Set config" do
+        error_page = directory.files.get(store_url(error_page_key))
+        maintenance_page = directory.files.get(store_url(maintenance_page_key))
+        vars = {
+          "ERROR_PAGE_URL" => error_page.public_url,
+          "MAINTENANCE_PAGE_URL" => maintenance_page.public_url
+        }
+        styled_hash(vars)
+        api.put_config_vars(app, vars)
+      end
     end
 
   private
