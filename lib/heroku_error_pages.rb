@@ -1,3 +1,5 @@
+require "fog"
+
 module Heroku::Command
   class ErrorPages < BaseWithApp
 
