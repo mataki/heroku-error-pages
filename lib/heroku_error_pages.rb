@@ -2,11 +2,14 @@ module Heroku::Command
   class ErrorPages < BaseWithApp
 
     def upload
+      display "Start upload public/*.html"
+
       s3_files = public_html_list do |file_name, file|
+        display "Upload #{file_name} to #{store_url(file_name)}"
         directory.files.create(key: store_url(file_name), body: file, public: true)
       end
 
-      puts s3_files
+      display "Finish to upload"
     end
 
     def config
